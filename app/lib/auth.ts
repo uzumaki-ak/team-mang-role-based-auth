@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import { cookies } from 'next/headers';
 import { prisma } from './db';
 import { Role, User } from '../types';
