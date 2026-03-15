@@ -29,7 +29,7 @@ const Sidebar = () => {
   const canManage = isAdmin || isManager;
 
   const collections = [
-    { label: "Users", href: "/users", show: isAdmin },
+    { label: "Users", href: "/users", show: !!user },
     { label: "Teams", href: "/teams", show: canManage },
   ];
 

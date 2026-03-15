@@ -1,6 +1,7 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Role } from "@/app/types";
 
 type TeamOption = {
@@ -27,12 +28,16 @@ type SafeUser = {
 };
 
 const UsersClient = () => {
+  const searchParams = useSearchParams();
+  const urlRole = searchParams.get("role") || "";
+  const urlTeamId = searchParams.get("teamId") || "";
+
   const [users, setUsers] = useState<UserItem[]>([]);
   const [teams, setTeams] = useState<TeamOption[]>([]);
   const [currentUser, setCurrentUser] = useState<SafeUser | null>(null);
   const [query, setQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState("");
-  const [teamFilterId, setTeamFilterId] = useState("");
+  const [roleFilter, setRoleFilter] = useState(urlRole);
+  const [teamFilterId, setTeamFilterId] = useState(urlTeamId);
   
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
@@ -152,6 +157,26 @@ const UsersClient = () => {
       setToast({ kind: "error", message: "Failed to update team" });
     }
   };
+  const handleDelete = async (userId: string) => {
+    if (!isAdmin || userId === currentUser?.id) return;
+    if (!window.confirm("Are you sure you want to remove this user identity? This action is permanent.")) return;
+
+    try {
+      const response = await fetch(`/api/user/${userId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (response.ok) {
+        setUsers(prev => prev.filter(u => u.id !== userId));
+        setToast({ kind: "success", message: "Identity purged" });
+      } else {
+        const data = await response.json();
+        setToast({ kind: "error", message: data.error || "Purge failed" });
+      }
+    } catch (err) {
+      setToast({ kind: "error", message: "Network error during purge" });
+    }
+  };
 
   const handleCreate = async (mode: "create" | "invite") => {
     if (!isAdmin) return;
@@ -200,6 +225,18 @@ const UsersClient = () => {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
+      <div className="flex flex-col gap-2 mb-8">
+        <div className="label text-(--muted)">DIRECTORY</div>
+        <h1 className="text-4xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-barlow)' }}>
+          {isAdmin ? "User Management" : "Teammates"}
+        </h1>
+        <p className="text-(--muted) text-sm max-w-2xl">
+          {isAdmin 
+            ? "Full access to the global identity directory. Manage roles and team assignments across the organization."
+            : `Viewing active members of your workspace synchronization.`}
+        </p>
+      </div>
+
       {toast && (
         <div className="fixed bottom-8 right-8 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
           <div className={`panel p-4 min-w-[300px] border-l-4 ${toast.kind === 'success' ? 'border-green-500' : 'border-red-500'} shadow-2xl`}>
@@ -279,6 +316,7 @@ const UsersClient = () => {
                 <th className="p-6 text-[10px] font-bold uppercase tracking-[0.2em] text-(--muted)" style={{ fontFamily: 'var(--font-barlow)' }}>Role</th>
                 <th className="p-6 text-[10px] font-bold uppercase tracking-[0.2em] text-(--muted)" style={{ fontFamily: 'var(--font-barlow)' }}>Team</th>
                 <th className="p-6 text-[10px] font-bold uppercase tracking-[0.2em] text-(--muted)" style={{ fontFamily: 'var(--font-barlow)' }}>Status</th>
+                {isAdmin && <th className="p-6 text-[10px] font-bold uppercase tracking-[0.2em] text-(--muted)" style={{ fontFamily: 'var(--font-barlow)' }}>Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-(--border)">
@@ -333,6 +371,23 @@ const UsersClient = () => {
                         <span className="text-[10px] font-bold uppercase tracking-widest">Active</span>
                       </div>
                     </td>
+                    {isAdmin && (
+                      <td className="p-6">
+                        {user.id !== currentUser?.id ? (
+                          <button 
+                            className="text-(--muted) hover:text-red-500 transition-colors"
+                            onClick={() => handleDelete(user.id)}
+                            title="Purge Identity"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        ) : (
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-(--muted) opacity-30">Self</span>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

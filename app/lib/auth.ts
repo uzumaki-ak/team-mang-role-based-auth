@@ -32,7 +32,8 @@ export const getCurrentUser = async ():Promise<User | null> => {
 
     //
     const userFromDb = await prisma.user.findUnique({
-      where: {id: decode.userId}
+      where: {id: decode.userId},
+      include: { team: true },
     })
 
     if(!userFromDb) return null;

@@ -1,7 +1,6 @@
 import { getCurrentUser } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/db";
 import { Prisma, Role } from "@prisma/client";
-import { error } from "console";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -19,26 +18,40 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const teamId = searchParams.get("teamId");
     const role = searchParams.get("role");
+    const query = searchParams.get("q");
 
     //where clause based on user role
     const where: Prisma.UserWhereInput = {};
-    if (user.role == Role.ADMIN) {
-      //admin can see all users or filter by teamId and role
-    } else if (user.role == Role.MANAGER) {
-      //manager can see users in their team or cross team user but can not see other managers or admins
-      where.OR = [{ teamId: user.teamId }, { role: Role.USER }];
-    } else {
-      //regular user can see only users in their team
+    if (user.role !== Role.ADMIN) {
+      // Non-admins (Managers and Users) can ONLY see users in their own team
       where.teamId = user.teamId;
-      where.role = { not: Role.ADMIN };
     }
 
     //filters
-    if (teamId) {
+    if (teamId && user.role === Role.ADMIN) {
+      // Only admins can override the teamId filter
       where.teamId = teamId;
     }
-    if (role) {
+    
+    if (role && Object.values(Role).includes(role as Role)) {
       where.role = role as Role;
+    }
+    
+    if (query) {
+      const existingAnd = Array.isArray(where.AND)
+        ? where.AND
+        : where.AND
+          ? [where.AND]
+          : [];
+      where.AND = [
+        ...existingAnd,
+        {
+          OR: [
+            { email: { contains: query, mode: "insensitive" } },
+            { name: { contains: query, mode: "insensitive" } },
+          ],
+        },
+      ];
     }
 
     const users = await prisma.user.findMany({

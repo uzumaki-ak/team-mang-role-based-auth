@@ -1,16 +1,17 @@
 import { generateToken, hashPassword } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/db";
 import { Role } from "@prisma/client";
-import { error } from "console";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, name, password, teamCode } = await request.json();
+    const { email: rawEmail, name, password, teamCode } = await request.json();
+    const email = rawEmail?.toLowerCase();
+
     if (!email || !name || !password) {
       return NextResponse.json(
         {
-          error: "missing name ;email;password",
+          error: "Missing name, email, or password",
         },
         { status: 400 }
       );

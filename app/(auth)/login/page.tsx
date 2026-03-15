@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, Suspense } from "react";
 
-const LoginPage = () => {
+const LoginForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextParam = searchParams.get("next");
@@ -100,6 +100,14 @@ const LoginPage = () => {
         </p>
       </div>
     </div>
+  );
+};
+
+const LoginPage = () => {
+  return (
+    <Suspense fallback={<div className="min-h-[70vh] flex items-center justify-center uppercase tracking-widest text-[10px] font-bold animate-pulse">Verifying Identity...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 };
 

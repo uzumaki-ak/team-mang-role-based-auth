@@ -31,15 +31,15 @@ export async function PATCH(
 
     const { role } = await request.json();
 
-    //checing if role is valid or not
-    const validRoles = [Role.USER, Role.MANAGER];
+    // checking if role is valid
+    const validRoles = [Role.USER, Role.MANAGER, Role.GUEST, Role.ADMIN];
 
-    if (!validRoles.includes(role)) {
+    if (!validRoles.includes(role as Role)) {
       return NextResponse.json(
         {
-          errror: "invalid role ,blud u cant have more than one admin role 🤭",
+          error: "invalid role provided",
         },
-        { status: 404 }
+        { status: 400 }
       );
     }
 

@@ -32,13 +32,38 @@ const Page = async () => {
   const isManager = user.role === Role.MANAGER;
 
   // Stats for the dashboard
-  const userCount = await prisma.user.count();
+  const userCount = isAdmin 
+    ? await prisma.user.count() 
+    : await prisma.user.count({ where: { teamId: user.teamId } });
+    
   const teamCount = await prisma.team.count();
-  const managerCount = await prisma.user.count({ where: { role: Role.MANAGER } });
+  
+  const managerCount = isAdmin 
+    ? await prisma.user.count({ where: { role: Role.MANAGER } })
+    : 0;
 
   const collections = [
-    { title: "Users", count: userCount, href: "/users", show: isAdmin, icon: "👤" },
-    { title: "Teams", count: teamCount, href: "/teams", show: isAdmin || isManager, icon: "👥" },
+    { 
+      title: isAdmin ? "Users" : "Teammates", 
+      count: userCount, 
+      href: "/users", 
+      show: true, 
+      icon: "👤" 
+    },
+    { 
+      title: "Teams", 
+      count: teamCount, 
+      href: "/teams", 
+      show: isAdmin || isManager, 
+      icon: "👥" 
+    },
+    { 
+      title: "Managers", 
+      count: managerCount, 
+      href: "/users?role=MANAGER", 
+      show: isAdmin, 
+      icon: "👔" 
+    },
   ];
 
   const controls = [

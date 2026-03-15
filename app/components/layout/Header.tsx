@@ -42,7 +42,8 @@ const Header = () => {
     };
   }, []);
 
-  const { title, breadcrumb } = useMemo(() => {
+  const { title, crumbs } = useMemo(() => {
+    if (!pathname) return { title: "Overview", crumbs: [] };
     const segments = pathname.split("/").filter(Boolean);
     const label = segments.length ? segments[segments.length - 1] : "Overview";
     const pretty = label.replace(/-/g, " ");
@@ -72,11 +73,11 @@ const Header = () => {
   return (
     <header className="app-header">
       <div className="flex flex-col">
-        <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-[var(--muted)] mb-1">
-          <Link href="/" className="hover:text-[var(--text)] transition-colors">WORKSPACE</Link>
+        <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-(--muted) mb-1">
+          <Link href="/" className="hover:text-(--text) transition-colors">WORKSPACE</Link>
           {title !== "Overview" && <span className="opacity-30">/</span>}
           {title !== "Overview" && (
-            <span className="text-[var(--text)]">{title}</span>
+            <span className="text-(--text)">{title}</span>
           )}
         </div>
         <h1 className="page-title capitalize" style={{ fontFamily: 'var(--font-barlow)' }}>{title}</h1>
@@ -89,7 +90,7 @@ const Header = () => {
           <div className="flex items-center gap-4">
             <div className="hidden md:flex flex-col items-end">
               <span className="text-sm font-semibold">{user.name || "User"}</span>
-              <span className="text-[10px] uppercase font-bold text-[var(--muted)]">{user.role}</span>
+              <span className="text-[10px] uppercase font-bold text-(--muted)">{user.role}</span>
             </div>
             <button 
               className="btn btn-ghost text-xs px-3 py-1.5"

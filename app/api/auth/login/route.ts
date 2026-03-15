@@ -1,12 +1,11 @@
-import { generateToken, hashPassword, verifyPasword } from "@/app/lib/auth";
+import { generateToken, verifyPasword } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/db";
-import { Role } from "@prisma/client";
-import { error } from "console";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email,  password, teamCode } = await request.json();
+    const { email: rawEmail, password } = await request.json();
+    const email = rawEmail?.toLowerCase();
     if (!email || !password) {
       return NextResponse.json(
         {

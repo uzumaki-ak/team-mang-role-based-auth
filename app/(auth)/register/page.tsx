@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, Suspense } from "react";
 
-const RegisterPage = () => {
+const RegisterForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextParam = searchParams.get("next");
@@ -121,6 +121,14 @@ const RegisterPage = () => {
         </p>
       </div>
     </div>
+  );
+};
+
+const RegisterPage = () => {
+  return (
+    <Suspense fallback={<div className="min-h-[80vh] flex items-center justify-center uppercase tracking-widest text-[10px] font-bold animate-pulse">Initializing Identity...</div>}>
+      <RegisterForm />
+    </Suspense>
   );
 };
 
